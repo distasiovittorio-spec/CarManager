@@ -1,5 +1,5 @@
 /* CarManager - service worker: permette di usare l'app anche senza connessione */
-const CACHE = 'carmanager-v1';
+const CACHE = 'carmanager-v2';
 const FILES = [
   './',
   './index.html',

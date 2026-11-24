@@ -121,6 +121,7 @@
       .sort(function (a, b) { return b.value - a.value; });
   }
   function yearStats(vid, year) {
+    if (year === 'all') return allYearsStats(vid);
     var ex = expensesOf(vid, year);
     var tot = sum(ex, function (e) { return e.importo; });
     var litri = sum(ex, function (e) { return e.litri; });
@@ -135,12 +136,25 @@
     if (cons == null && km && litri > 0) { cons = km / litri; est = true; }
     return { tot: tot, km: km, cons: cons, est: est, costKm: km ? tot / km : null, litri: litri, n: ex.length, rec: y };
   }
+  function allYearsStats(vid) {
+    var years = yearsFor(vid), tot = sum(expensesOf(vid), function (e) { return e.importo; });
+    var km = 0, hasKm = false, totKm = 0, litriEq = 0, kmCons = 0, est = false, n = 0, litri = 0;
+    years.forEach(function (y) {
+      var st = yearStats(vid, y);
+      n += st.n; litri += st.litri;
+      if (st.km) { km += st.km; hasKm = true; totKm += st.tot; }
+      if (st.km && st.cons) { kmCons += st.km; litriEq += st.km / st.cons; if (st.est) est = true; }
+    });
+    return { tot: tot, km: hasKm ? km : null, cons: litriEq > 0 ? kmCons / litriEq : null, est: est,
+      costKm: hasKm && km > 0 ? totKm / km : null, litri: litri, n: n, rec: null };
+  }
   function acquistoInfo(a) {
     var rata = a.importoRata || 0, nr = a.nRate || 0, pag = a.ratePagate || 0;
     var anticipo = a.anticipo || 0, saldo = a.saldo || 0;
     var totale = anticipo + rata * nr + saldo;
-    var pagato = anticipo + rata * Math.min(pag, nr) + (a.saldoPagato === 'si' ? saldo : 0);
-    return { totale: totale, pagato: pagato, residuo: Math.max(totale - pagato, 0), perc: totale > 0 ? Math.min(100, pagato / totale * 100) : 0,
+    var rateVersate = rata * Math.min(pag, nr);
+    var pagato = anticipo + rateVersate + (a.saldoPagato === 'si' ? saldo : 0);
+    return { rateVersate: rateVersate, rateResidue: Math.max(rata * nr - rateVersate, 0), totale: totale, pagato: pagato, residuo: Math.max(totale - pagato, 0), perc: totale > 0 ? Math.min(100, pagato / totale * 100) : 0,
       interessi: a.prezzo ? totale - a.prezzo : null };
   }
   function sortedDeadlines(vid) {
@@ -231,17 +245,17 @@
   }
 
   function vSummary(v) {
-    var years = yearsFor(v.id);
-    if (years.indexOf(Number(S.year)) < 0) S.year = String(years[0]);
+    var years = yearsFor(v.id), all = S.year === 'all';
+    if (!all && years.indexOf(Number(S.year)) < 0) S.year = String(years[0]);
     var st = yearStats(v.id, S.year);
-    var h = '<div class="filters" style="grid-template-columns:1fr">' + yearSelect(S.year, years, 'year') + '</div>';
+    var h = '<div class="filters" style="grid-template-columns:1fr">' + yearSelect(S.year, years, 'year', true) + '</div>';
     h += '<div class="metrics">' +
-      '<div class="metric"><span>Spese ' + S.year + '</span><strong>' + eur(st.tot) + '</strong><small>' + st.n + (st.n === 1 ? ' voce' : ' voci') + '</small></div>' +
-      '<div class="metric"><span>Km percorsi</span><strong>' + (st.km ? num(st.km) : '—') + '</strong><small>' + (st.km ? 'nell\'anno' : 'vedi scheda Km') + '</small></div>' +
-      '<div class="metric"><span>Consumo medio</span><strong>' + (st.cons ? num(st.cons, 1) + ' km/l' : '—') + '</strong><small>' + (st.cons ? (st.est ? 'stimato dai rifornimenti' : 'inserito da te') : 'dato mancante') + '</small></div>' +
+      '<div class="metric"><span>' + (all ? 'Spese totali' : 'Spese ' + S.year) + '</span><strong>' + eur(st.tot) + '</strong><small>' + st.n + (st.n === 1 ? ' voce' : ' voci') + '</small></div>' +
+      '<div class="metric"><span>' + (all ? 'Km totali percorsi' : 'Km percorsi') + '</span><strong>' + (st.km ? num(st.km) : '—') + '</strong><small>' + (st.km ? (all ? 'somma di tutti gli anni' : 'nell\'anno') : 'vedi scheda Km') + '</small></div>' +
+      '<div class="metric"><span>' + (all ? 'Consumo medio totale' : 'Consumo medio') + '</span><strong>' + (st.cons ? num(st.cons, 1) + ' km/l' : '—') + '</strong><small>' + (st.cons ? (all ? 'media pesata sui km' : (st.est ? 'stimato dai rifornimenti' : 'inserito da te')) : 'dato mancante') + '</small></div>' +
       '<div class="metric"><span>Costo al km</span><strong>' + (st.costKm ? eur(st.costKm) : '—') + '</strong><small>' + (st.costKm ? 'spese / km' : 'servono i km') + '</small></div></div>';
     var cats = byCat(expensesOf(v.id, S.year));
-    h += '<div class="card"><h2>Spese per categoria</h2>' + (cats.length ? hbars(cats, st.tot, true) : '<p class="muted small">Nessuna spesa registrata in questo anno.</p>') + '</div>';
+    h += '<div class="card"><h2>Spese per categoria' + (all ? ' · tutti gli anni' : '') + '</h2>' + (cats.length ? hbars(cats, st.tot, true) : '<p class="muted small">Nessuna spesa registrata.</p>') + '</div>';
     var all = sum(expensesOf(v.id), function (e) { return e.importo; });
     h += '<div class="card"><h2>Costo totale di possesso</h2><div class="kv"><span>Spese di gestione (tutti gli anni)</span><strong>' + eur(all) + '</strong></div>';
     if (v.acquisto) {
@@ -256,11 +270,11 @@
 
   function vExpenses(v) {
     var years = yearsFor(v.id);
-    if (years.indexOf(Number(S.year)) < 0) S.year = String(years[0]);
+    if (S.year !== 'all' && years.indexOf(Number(S.year)) < 0) S.year = String(years[0]);
     var list = expensesOf(v.id, S.year).sort(function (a, b) { return a.data < b.data ? 1 : a.data > b.data ? -1 : 0; });
-    var h = '<div class="row" style="margin-bottom:14px"><div class="grow">' + yearSelect(S.year, years, 'year') + '</div><button class="btn sm" data-act="addE">' + ico('plus') + ' Spesa</button></div>';
-    if (!list.length) return h + '<div class="empty"><p>Nessuna spesa in questo anno.</p></div>';
-    h += '<div class="muted small" style="margin:0 4px 8px">Totale ' + S.year + ': <b>' + eur(sum(list, function (e) { return e.importo; })) + '</b></div>';
+    var h = '<div class="row" style="margin-bottom:14px"><div class="grow">' + yearSelect(S.year, years, 'year', true) + '</div><button class="btn sm" data-act="addE">' + ico('plus') + ' Spesa</button></div>';
+    if (!list.length) return h + '<div class="empty"><p>Nessuna spesa registrata.</p></div>';
+    h += '<div class="muted small" style="margin:0 4px 8px">Totale ' + (S.year === 'all' ? 'complessivo' : S.year) + ': <b>' + eur(sum(list, function (e) { return e.importo; })) + '</b></div>';
     list.forEach(function (e) {
       var meta = [fmtDate(e.data), e.km != null ? num(e.km) + ' km' : '', e.litri ? num(e.litri, 2) + ' l' : '', e.note].filter(Boolean).join(' · ');
       h += '<button class="item" data-act="editE" data-id="' + e.id + '"><span class="dot" style="background:' + catColor(e.categoria) + '"></span>' +
@@ -297,6 +311,11 @@
       '<div class="kv"><span>Saldo finale</span><strong>' + eur(a.saldo) + (a.saldo ? (a.saldoPagato === 'si' ? ' · pagato' : ' · da pagare') : '') + '</strong></div>' +
       '<div class="kv"><span>Totale da pagare</span><strong>' + eur(i.totale) + '</strong></div>' +
       (i.interessi != null && i.interessi > 0.5 ? '<div class="kv"><span>Costo del finanziamento</span><strong>' + eur(i.interessi) + '</strong></div>' : '') + '</div>';
+    if (a.nRate) {
+      var pagN = Math.min(a.ratePagate || 0, a.nRate);
+      h += '<div class="metrics"><div class="metric"><span>Totale rate versate</span><strong>' + eur(i.rateVersate) + '</strong><small>' + pagN + ' di ' + a.nRate + ' rate da ' + eur(a.importoRata) + '</small></div>' +
+        '<div class="metric"><span>Rate ancora da versare</span><strong>' + eur(i.rateResidue) + '</strong><small>' + (a.nRate - pagN) + (a.nRate - pagN === 1 ? ' rata' : ' rate') + ' rimaste</small></div></div>';
+    }
     h += '<div class="card"><h2>Avanzamento pagamenti</h2><div class="row"><div class="grow"><strong style="font-size:22px">' + eur(i.pagato) + '</strong><div class="muted small">pagato su ' + eur(i.totale) + '</div></div><span class="pill ' + (i.residuo === 0 ? 'ok' : 'warn') + '">' + (i.residuo === 0 ? 'Completato' : 'Restano ' + eur(i.residuo)) + '</span></div>' +
       '<div class="progress"><i style="width:' + i.perc.toFixed(1) + '%"></i></div>' +
       '<div class="muted small">' + (a.nRate ? 'Rate pagate: ' + Math.min(a.ratePagate || 0, a.nRate) + ' di ' + a.nRate : 'Nessuna rata prevista') + '</div></div>';

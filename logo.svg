@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6D5EF5"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DCE6FF"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B3FCB"/>
+      <stop offset="1" stop-color="#0E8FB5"/>
+    </linearGradient>
+    <linearGradient id="coin" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FDE68A"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="420" cy="90" r="170" fill="#FFFFFF" opacity="0.10"/>
+  <circle cx="70" cy="470" r="140" fill="#FFFFFF" opacity="0.08"/>
+
+  <g transform="translate(0,-30)">
+    <ellipse cx="262" cy="404" rx="196" ry="15" fill="#0B1020" opacity="0.22"/>
+
+    <path d="M44 296 H84 M30 326 H76 M52 356 H88" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="10" stroke-linecap="round" fill="none"/>
+
+    <path d="M92 322 C92 300 104 292 122 288 L150 232 C158 216 172 208 190 208 L318 208 C340 208 354 216 366 232 L396 282 C420 286 432 298 432 320 L432 340 C432 348 426 354 418 354 L106 354 C98 354 92 348 92 340 Z" fill="url(#body)"/>
+
+    <path d="M164 276 L186 234 Q189 227 197 227 L250 227 L250 276 Z" fill="url(#glass)"/>
+    <path d="M266 227 L316 227 Q326 227 332 235 L358 276 L266 276 Z" fill="url(#glass)"/>
+    <path d="M176 262 L190 240" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round"/>
+
+    <path d="M258 284 V342" stroke="#B3C3F0" stroke-width="4" stroke-linecap="round"/>
+    <rect x="282" y="298" width="28" height="8" rx="4" fill="#B3C3F0"/>
+
+    <path d="M410 300 C420 302 424 308 424 316 C424 322 420 326 414 326 L406 326 Z" fill="#FDE68A"/>
+    <rect x="93" y="300" width="11" height="22" rx="5.5" fill="#FB7185"/>
+
+    <circle cx="172" cy="354" r="44" fill="#0B1020"/>
+    <circle cx="172" cy="354" r="21" fill="#E8EEFF"/>
+    <circle cx="172" cy="354" r="8" fill="#0B1020"/>
+    <circle cx="352" cy="354" r="44" fill="#0B1020"/>
+    <circle cx="352" cy="354" r="21" fill="#E8EEFF"/>
+    <circle cx="352" cy="354" r="8" fill="#0B1020"/>
+  </g>
+
+  <circle cx="394" cy="112" r="48" fill="url(#coin)"/>
+  <circle cx="394" cy="112" r="38" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="4"/>
+  <text x="394" y="132" text-anchor="middle" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-weight="bold" font-size="56" fill="#8A3B05">€</text>
+</svg>
